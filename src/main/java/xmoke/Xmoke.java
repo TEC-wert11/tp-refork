@@ -19,6 +19,13 @@ public class Xmoke {
         tasks = storage.loadTasks();
     }
 
+    /** Creates Xmoke with the given storage (e.g. for a specific user). */
+    public Xmoke(Storage storage) {
+        ui = new Ui();
+        this.storage = storage;
+        this.tasks = storage.loadTasks();
+    }
+
     /**
      * Generates a response for the given user input.
      * Used by the GUI to get a single reply for a single message.

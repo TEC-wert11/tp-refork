@@ -13,25 +13,64 @@ import javafx.stage.Stage;
  * Main JavaFX application for the XMOKE chatbot GUI.
  */
 public class MainApp extends Application {
-    private xmoke.Xmoke xmoke = new xmoke.Xmoke();
+    private Stage primaryStage;
+
+    /** Entry point when run as main class (e.g. from IDE or gradlew run). */
+    public static void main(String[] args) {
+        Application.launch(MainApp.class, args);
+    }
 
     @Override
     public void start(Stage stage) {
+        this.primaryStage = stage;
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(MainApp.class.getResource("/view/HomePage.fxml"));
+            AnchorPane ap = fxmlLoader.load();
+            Scene scene = new Scene(ap);
+            primaryStage.setScene(scene);
+            primaryStage.setTitle("XMOKE");
+            primaryStage.setMinHeight(300.0);
+            primaryStage.setMinWidth(400.0);
+
+            HomePageController homeController = fxmlLoader.getController();
+            homeController.setMainApp(this);
+
+            primaryStage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /** Switches to the chat window for the given user and Xmoke instance (user-specific data). */
+    public void showChatScene(String userName, xmoke.Xmoke xmoke) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(MainApp.class.getResource("/view/MainWindow.fxml"));
             AnchorPane ap = fxmlLoader.load();
             Scene scene = new Scene(ap);
-            stage.setScene(scene);
-            stage.setTitle("XMOKE");
-            stage.setMinHeight(300.0);
-            stage.setMinWidth(400.0);
+            primaryStage.setScene(scene);
 
             MainWindow mainWindow = fxmlLoader.getController();
+            mainWindow.setMainApp(this);
             mainWindow.setXmoke(xmoke);
-            mainWindow.setUserImage(loadImage("/images/DaUser.jpg"));
+            String userImagePath = "/images/" + userName.trim().replace(" ", "_") + ".jpg";
+            mainWindow.setUserImage(loadImage(userImagePath));
             mainWindow.setDukeImage(loadImage("/images/DaDuke.jpg"));
+            mainWindow.showWelcomeMessage();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-            stage.show();
+    /** Switches back to the home page (user selection). */
+    public void showHomeScene() {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(MainApp.class.getResource("/view/HomePage.fxml"));
+            AnchorPane ap = fxmlLoader.load();
+            Scene scene = new Scene(ap);
+            primaryStage.setScene(scene);
+
+            HomePageController homeController = fxmlLoader.getController();
+            homeController.setMainApp(this);
         } catch (IOException e) {
             e.printStackTrace();
         }

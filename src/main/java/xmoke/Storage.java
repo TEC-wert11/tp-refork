@@ -13,12 +13,33 @@ import java.util.List;
  */
 
 public class Storage {
-    private static final Path DATA_FOLDER_PATH = Paths.get("data");
-    private static final Path DATA_FILE_PATH = DATA_FOLDER_PATH.resolve("XMOKE.txt");
-    private static final Path CHEER_FILE_PATH = DATA_FOLDER_PATH.resolve("cheer.txt");
+    private static final Path DATA_ROOT = Paths.get("data");
+    private static final String LEGACY_USER_FOLDER = "Obi-Wan_Kenobi";
 
+    private final Path dataFolderPath;
+    private final Path dataFilePath;
+    private final Path cheerFilePath;
+
+    /** Uses default shared data folder (legacy). */
     public Storage() {
+        this.dataFolderPath = DATA_ROOT;
+        this.dataFilePath = DATA_ROOT.resolve("XMOKE.txt");
+        this.cheerFilePath = DATA_ROOT.resolve("cheer.txt");
         ensureDataFileExists();
+    }
+
+    /**
+     * Uses a user-specific folder under data/ so each user has separate task data.
+     *
+     * @param userDisplayName Display name (e.g. "Obi-Wan Kenobi"); spaces become underscores in path.
+     */
+    public Storage(String userDisplayName) {
+        String folder = userDisplayName.trim().replace(" ", "_");
+        this.dataFolderPath = DATA_ROOT.resolve(folder);
+        this.dataFilePath = dataFolderPath.resolve("XMOKE.txt");
+        this.cheerFilePath = dataFolderPath.resolve("cheer.txt");
+        ensureDataFileExists();
+        migrateLegacyDataIfNeeded(folder);
     }
 
     /**
@@ -29,15 +50,30 @@ public class Storage {
 
     private void ensureDataFileExists() {
         try {
-            Files.createDirectories(DATA_FOLDER_PATH);
-            if (Files.notExists(DATA_FILE_PATH)) {
-                Files.createFile(DATA_FILE_PATH);
+            Files.createDirectories(dataFolderPath);
+            if (Files.notExists(dataFilePath)) {
+                Files.createFile(dataFilePath);
             }
-            if (Files.notExists(CHEER_FILE_PATH)) {
-                Files.createFile(CHEER_FILE_PATH);
+            if (Files.notExists(cheerFilePath)) {
+                Files.createFile(cheerFilePath);
             }
         } catch (IOException e) {
             System.out.println("OOPS!!! I couldn't set up the data file: " + e.getMessage());
+        }
+    }
+
+    /** One-time migration: if this user is Obi-Wan and legacy data exists, copy it into user folder. */
+    private void migrateLegacyDataIfNeeded(String userFolder) {
+        if (!LEGACY_USER_FOLDER.equals(userFolder)) {
+            return;
+        }
+        Path legacyData = DATA_ROOT.resolve("XMOKE.txt");
+        try {
+            if (Files.exists(legacyData) && (!Files.exists(dataFilePath) || Files.size(dataFilePath) == 0)) {
+                Files.copy(legacyData, dataFilePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            System.out.println("OOPS!!! Could not migrate legacy data: " + e.getMessage());
         }
     }
 
@@ -52,7 +88,7 @@ public class Storage {
         TaskList taskList = new TaskList();
 
         try {
-            List<String> lines = Files.readAllLines(DATA_FILE_PATH);
+            List<String> lines = Files.readAllLines(dataFilePath);
             for (String line : lines) {
                 if (line.trim().isEmpty()) {
                     continue;
@@ -104,25 +140,27 @@ public class Storage {
             for (Task task : taskList.getAllTasks()) {
                 content.append(task.toFileFormat()).append("\n");
             }
-            Files.writeString(DATA_FILE_PATH, content.toString());
+            Files.writeString(dataFilePath, content.toString());
         } catch (IOException e) {
             System.out.println("OOPS!!! I couldn't save data: " + e.getMessage());
         }
     }
 
+    private static final String[] CHEER_QUOTES = {
+        "Do. Or do not. There is no try.",
+        "Patience you must have my young Padawan.",
+        "Train yourself to let go of everything you fear to lose.",
+        "Always pass on what you have learned.",
+        "Feel the force!",
+        "A Jedi uses the Force for knowledge and defense, never for attack.",
+        "Difficult to see. Always in motion is the future.",
+        "Fear is the path to the dark side. Fear leads to anger. Anger leads to hate. Hate leads to suffering.",
+        "Your path you must decide."
+    };
+
+    /** Returns a random cheer quote from the fixed list of nine messages. */
     public String getRandomCheerQuote() {
-        try {
-            List<String> lines = Files.readAllLines(CHEER_FILE_PATH);
-            lines.removeIf(s -> s.trim().isEmpty());
-
-            if (lines.isEmpty()) {
-                return "Keep going — you’re doing great!";
-            }
-
-            int index = (int) (Math.random() * lines.size());
-            return lines.get(index);
-        } catch (IOException e) {
-            return "Keep going — you’re doing great!";
-        }
+        int index = (int) (Math.random() * CHEER_QUOTES.length);
+        return CHEER_QUOTES[index];
     }
 }

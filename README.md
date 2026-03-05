@@ -21,7 +21,7 @@ A desktop chatbot for managing tasks, built with Java and JavaFX for course CS21
    - Select the project directory, then click `OK`.
    - Accept the defaults if prompted.
 3. Configure the project to use **JDK 21**: [Set up JDK in IntelliJ](https://www.jetbrains.com/help/idea/sdk.html#set-up-jdk). Set **Project language level** to `SDK default`.
-4. To run the app: run `Launcher` (in `src/main/java/Launcher.java`) — e.g. right-click `Launcher.java` and choose **Run 'Launcher.main()'**. A chat window titled **XMOKE** should open; type in the text box and press Enter or click **Send**.
+4. To run the app: run `MainApp` (in `src/main/java/MainApp.java`) — e.g. right-click `MainApp.java` and choose **Run 'MainApp.main()'**, or run the Gradle task **run** (e.g. `.\gradlew run`). A window titled **XMOKE** should open; select a user, click **Enter**, then type in the text box and press Enter or click **Send**.
 
 **Note:** Keep the `src/main/java` folder as the root for Java source files so that tools like Gradle can find them.
 
@@ -67,4 +67,4 @@ gradlew.bat test
 
 ## Tech
 
-- Java 21, JavaFX 21 (GUI), Gradle. Main entry point: `Launcher`; GUI: `MainApp` and FXML under `src/main/resources/view/`.
+- Java 21, JavaFX 21 (GUI), Gradle. Main entry point: `MainApp`; GUI and FXML under `src/main/resources/view/`.

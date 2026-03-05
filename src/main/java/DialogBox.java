@@ -20,6 +20,7 @@ public class DialogBox extends HBox {
 
     private DialogBox(String text, Image img) {
         dialog = new Label(text);
+        dialog.getStyleClass().add("chat-dialog");
         displayPicture = new ImageView(img);
         dialog.setWrapText(true);
         dialog.setMinHeight(Region.USE_PREF_SIZE);

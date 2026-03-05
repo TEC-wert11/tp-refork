@@ -1,5 +1,8 @@
 .root {
-    -fx-background-color: rgb(245, 245, 245);
+    -fx-background-image: url("../images/Background_Chat.jpg");
+    -fx-background-size: cover;
+    -fx-background-position: center center;
+    -fx-background-repeat: no-repeat;
 }
 
 .text-field {
@@ -14,4 +17,9 @@
 .scroll-pane,
 .scroll-pane .viewport {
     -fx-background-color: transparent;
+}
+
+.chat-dialog {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
 }

@@ -9,7 +9,8 @@ import java.util.Scanner;
  * Handles all user-facing output messages for the chatbot.
  */
 public class Ui {
-    private static final String LINE_SEPARATOR = "____________________________________________________________";
+    /** Line separator for GUI replies (empty so no dashes/lines in chat). */
+    private static final String LINE_SEPARATOR = "";
     private final Scanner scanner;
 
     public Ui() {

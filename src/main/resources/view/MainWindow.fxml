@@ -7,7 +7,8 @@
 <?import javafx.scene.layout.VBox?>
 
 <AnchorPane fx:controller="MainWindow" prefHeight="600.0" prefWidth="400.0" stylesheets="@/css/main.css" xmlns:fx="http://javafx.com/fxml">
-    <ScrollPane fx:id="scrollPane" fitToWidth="true" AnchorPane.topAnchor="1.0" AnchorPane.leftAnchor="1.0" AnchorPane.rightAnchor="1.0" AnchorPane.bottomAnchor="65.0">
+    <Button onAction="#handleBack" text="Back" AnchorPane.topAnchor="5.0" AnchorPane.leftAnchor="5.0" />
+    <ScrollPane fx:id="scrollPane" fitToWidth="true" AnchorPane.topAnchor="40.0" AnchorPane.leftAnchor="1.0" AnchorPane.rightAnchor="1.0" AnchorPane.bottomAnchor="65.0">
         <VBox fx:id="dialogContainer" prefHeight="-Infinity" />
     </ScrollPane>
     <TextField fx:id="userInput" onAction="#handleUserInput" AnchorPane.bottomAnchor="1.0" AnchorPane.leftAnchor="1.0" AnchorPane.rightAnchor="76.0" />

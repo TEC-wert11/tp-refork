@@ -1,0 +1,10 @@
+.root {
+    -fx-background-image: url("../images/Background_Main.jpg");
+    -fx-background-size: cover;
+    -fx-background-position: center center;
+    -fx-background-repeat: no-repeat;
+}
+
+.button {
+    -fx-font-size: 14px;
+}

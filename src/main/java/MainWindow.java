@@ -20,9 +20,14 @@ public class MainWindow extends AnchorPane {
     @FXML
     private Button sendButton;
 
+    private MainApp mainApp;
     private xmoke.Xmoke xmoke;
     private Image userImage;
     private Image dukeImage;
+
+    public void setMainApp(MainApp mainApp) {
+        this.mainApp = mainApp;
+    }
 
     /** Initializes the scroll pane and binds scroll position to bottom. */
     @FXML
@@ -45,6 +50,12 @@ public class MainWindow extends AnchorPane {
         dukeImage = img;
     }
 
+    /** Shows the initial greeting from the bot (with profile photo) when the chat page opens. */
+    public void showWelcomeMessage() {
+        dialogContainer.getChildren().add(
+                DialogBox.getDukeDialog("How may I help you, my young padawan?", dukeImage));
+    }
+
     @FXML
     private void handleUserInput() {
         String input = userInput.getText();
@@ -58,5 +69,10 @@ public class MainWindow extends AnchorPane {
             Stage stage = (Stage) userInput.getScene().getWindow();
             stage.close();
         }
+    }
+
+    @FXML
+    private void handleBack() {
+        mainApp.showHomeScene();
     }
 }
