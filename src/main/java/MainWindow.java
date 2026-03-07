@@ -52,17 +52,31 @@ public class MainWindow extends AnchorPane {
 
     /** Shows the initial greeting from the bot (with profile photo) when the chat page opens. */
     public void showWelcomeMessage() {
+        Image img = dukeImage != null ? dukeImage : new javafx.scene.image.WritableImage(1, 1);
         dialogContainer.getChildren().add(
-                DialogBox.getDukeDialog("How may I help you, my young padawan?", dukeImage));
+                DialogBox.getDukeDialog("How may I help you, my young padawan?", img));
     }
 
     @FXML
     private void handleUserInput() {
+        if (xmoke == null) {
+            showErrorInChat("Chat is not ready. Please go back and try again.");
+            return;
+        }
         String input = userInput.getText();
-        String response = xmoke.getResponse(input);
+        String response;
+        try {
+            response = xmoke.getResponse(input);
+        } catch (Exception e) {
+            String msg = e.getMessage() != null ? e.getMessage() : "Something went wrong.";
+            showErrorInChat(msg);
+            return;
+        }
+        Image userImg = userImage != null ? userImage : new javafx.scene.image.WritableImage(1, 1);
+        Image dukeImg = dukeImage != null ? dukeImage : new javafx.scene.image.WritableImage(1, 1);
         dialogContainer.getChildren().addAll(
-                DialogBox.getUserDialog(input, userImage),
-                DialogBox.getDukeDialog(response, dukeImage)
+                DialogBox.getUserDialog(input, userImg),
+                DialogBox.getDukeDialog(response, dukeImg)
         );
         userInput.clear();
         if (input.trim().equalsIgnoreCase("bye")) {
@@ -71,8 +85,15 @@ public class MainWindow extends AnchorPane {
         }
     }
 
+    private void showErrorInChat(String message) {
+        Image img = dukeImage != null ? dukeImage : new javafx.scene.image.WritableImage(1, 1);
+        dialogContainer.getChildren().add(DialogBox.getDukeDialog(message, img));
+    }
+
     @FXML
     private void handleBack() {
-        mainApp.showHomeScene();
+        if (mainApp != null) {
+            mainApp.showHomeScene();
+        }
     }
 }

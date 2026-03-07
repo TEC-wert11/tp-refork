@@ -2,6 +2,8 @@ import java.io.IOException;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
@@ -24,7 +26,12 @@ public class MainApp extends Application {
     public void start(Stage stage) {
         this.primaryStage = stage;
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(MainApp.class.getResource("/view/HomePage.fxml"));
+            java.net.URL resource = MainApp.class.getResource("/view/HomePage.fxml");
+            if (resource == null) {
+                showErrorAlert("Missing resource", "Cannot find HomePage.fxml. Check that the file exists in src/main/resources/view/.");
+                return;
+            }
+            FXMLLoader fxmlLoader = new FXMLLoader(resource);
             AnchorPane ap = fxmlLoader.load();
             Scene scene = new Scene(ap);
             primaryStage.setScene(scene);
@@ -38,13 +45,22 @@ public class MainApp extends Application {
             primaryStage.show();
         } catch (IOException e) {
             e.printStackTrace();
+            showErrorAlert("Failed to load app", "Could not load the home page: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            showErrorAlert("Error", "An unexpected error occurred: " + e.getMessage());
         }
     }
 
     /** Switches to the chat window for the given user and Xmoke instance (user-specific data). */
     public void showChatScene(String userName, xmoke.Xmoke xmoke) {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(MainApp.class.getResource("/view/MainWindow.fxml"));
+            java.net.URL resource = MainApp.class.getResource("/view/MainWindow.fxml");
+            if (resource == null) {
+                showErrorAlert("Missing resource", "Cannot find MainWindow.fxml.");
+                return;
+            }
+            FXMLLoader fxmlLoader = new FXMLLoader(resource);
             AnchorPane ap = fxmlLoader.load();
             Scene scene = new Scene(ap);
             primaryStage.setScene(scene);
@@ -58,13 +74,22 @@ public class MainApp extends Application {
             mainWindow.showWelcomeMessage();
         } catch (IOException e) {
             e.printStackTrace();
+            showErrorAlert("Failed to open chat", "Could not load the chat window: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            showErrorAlert("Error", "An unexpected error occurred: " + e.getMessage());
         }
     }
 
     /** Switches back to the home page (user selection). */
     public void showHomeScene() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(MainApp.class.getResource("/view/HomePage.fxml"));
+            java.net.URL resource = MainApp.class.getResource("/view/HomePage.fxml");
+            if (resource == null) {
+                showErrorAlert("Missing resource", "Cannot find HomePage.fxml.");
+                return;
+            }
+            FXMLLoader fxmlLoader = new FXMLLoader(resource);
             AnchorPane ap = fxmlLoader.load();
             Scene scene = new Scene(ap);
             primaryStage.setScene(scene);
@@ -73,7 +98,19 @@ public class MainApp extends Application {
             homeController.setMainApp(this);
         } catch (IOException e) {
             e.printStackTrace();
+            showErrorAlert("Failed to go back", "Could not load the home page: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            showErrorAlert("Error", "An unexpected error occurred: " + e.getMessage());
         }
+    }
+
+    private void showErrorAlert(String title, String message) {
+        Alert alert = new Alert(AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     private Image loadImage(String path) {

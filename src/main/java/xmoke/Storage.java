@@ -119,7 +119,12 @@ public class Storage {
                 }
 
                 Task task = new Task(description, type, done, dateTime);
-                taskList.addTask(task);
+                try {
+                    taskList.addTask(task);
+                } catch (IllegalStateException e) {
+                    // List is full (e.g. file has more than MAX_TASKS); stop adding, keep already-loaded tasks
+                    break;
+                }
             }
         } catch (IOException e) {
             System.out.println("OOPS!!! I couldn't load saved data: " + e.getMessage());
