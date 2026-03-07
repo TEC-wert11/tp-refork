@@ -44,7 +44,7 @@ test {
 }
 
 shadowJar {
-    archiveBaseName = "javafx-tutorial-duke"
+    archiveBaseName = "xmoke"
     archiveClassifier = null
     manifest {
         attributes 'Main-Class': 'Launcher'

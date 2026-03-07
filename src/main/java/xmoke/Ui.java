@@ -7,6 +7,9 @@ import java.util.Scanner;
 
 /**
  * Handles all user-facing output messages for the chatbot.
+ * Two styles of methods:
+ * - get*Message() / get*(): return a string for the GUI to display (used by MainWindow).
+ * - show*(): print the same content to stdout (used by the CLI in Xmoke.run()).
  */
 public class Ui {
     /** Line separator for GUI replies (empty so no dashes/lines in chat). */
@@ -17,6 +20,7 @@ public class Ui {
         this.scanner = new Scanner(System.in);
     }
 
+    // --- Welcome / goodbye ---
     public String getWelcomeMessage() {
         return LINE_SEPARATOR + "\nHello! I'm XMOKE\nWhat can I do for you?\n" + LINE_SEPARATOR + "\n";
     }
@@ -33,7 +37,7 @@ public class Ui {
         System.out.print(getGoodbyeMessage());
     }
 
-    /** Prints the XMOKE ASCII logo to stdout. */
+    /** Prints the XMOKE ASCII logo to stdout (CLI only; GUI does not use this). */
     public void showLogo() {
         String logo =
                 "__  __ __  __  ___  _  __ _____\n"
@@ -48,6 +52,7 @@ public class Ui {
         System.out.println(LINE_SEPARATOR);
     }
 
+    // --- Errors and generic messages ---
     public String getErrorMessage(String message) {
         return LINE_SEPARATOR + "\n" + message + "\n" + LINE_SEPARATOR + "\n";
     }
@@ -65,6 +70,7 @@ public class Ui {
         System.out.print(getSortSuccessMessage());
     }
 
+    // --- Task list (list command) ---
     public String getTaskListMessage(TaskList taskList) {
         StringBuilder sb = new StringBuilder();
         sb.append(LINE_SEPARATOR).append("\nHere are the tasks in your list:\n");
@@ -79,6 +85,7 @@ public class Ui {
         System.out.print(getTaskListMessage(taskList));
     }
 
+    // --- Task added (todo / deadline / event) ---
     public String getTaskAddedMessage(Task task, int taskCount) {
         return LINE_SEPARATOR + "\nGot it. I've added this task:\n" + task + "\n"
                 + "Now you have " + taskCount + " tasks in the list.\n" + LINE_SEPARATOR + "\n";
@@ -97,6 +104,7 @@ public class Ui {
         System.out.print(getTaskDeletedMessage(task, taskCount));
     }
 
+    // --- Mark / unmark ---
     public String getTaskMarkedMessage(Task task) {
         return LINE_SEPARATOR + "\nNice! I've marked this task as done:\n  " + task + "\n"
                 + LINE_SEPARATOR + "\n";
@@ -115,6 +123,7 @@ public class Ui {
         System.out.print(getTaskUnmarkedMessage(task));
     }
 
+    // --- Tasks on a given date ---
     public String getTasksOnDateMessage(ArrayList<Task> tasks, LocalDate date) {
         StringBuilder sb = new StringBuilder();
         sb.append(LINE_SEPARATOR).append("\n");
@@ -135,6 +144,7 @@ public class Ui {
         System.out.print(getTasksOnDateMessage(tasks, date));
     }
 
+    // --- Find command (keyword search) ---
     public String getFoundTasksMessage(ArrayList<Task> foundTasks) {
         StringBuilder sb = new StringBuilder();
         sb.append(LINE_SEPARATOR).append("\nHere are the matching tasks in your list:\n");
@@ -149,6 +159,7 @@ public class Ui {
         System.out.print(getFoundTasksMessage(foundTasks));
     }
 
+    // --- Cheer command (random quote) ---
     public String getCheerMessage(String quote) {
         return LINE_SEPARATOR + "\n" + quote + "\n" + LINE_SEPARATOR + "\n";
     }
@@ -157,6 +168,7 @@ public class Ui {
         System.out.print(getCheerMessage(quote));
     }
 
+    // --- CLI input (used only by Xmoke.run()) ---
     public String readCommand() {
         return scanner.nextLine();
     }

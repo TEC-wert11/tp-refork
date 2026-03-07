@@ -33,6 +33,9 @@ public class HomePageController {
     /** Opens the chat window for the selected user. */
     @FXML
     private void handleEnter() {
+        if (mainApp == null) {
+            return;
+        }
         String selected = userCombo.getSelectionModel().getSelectedItem();
         if (selected == null || selected.isBlank()) {
             return;

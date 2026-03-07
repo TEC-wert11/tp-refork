@@ -29,29 +29,35 @@ public class Xmoke {
     /**
      * Generates a response for the given user input.
      * Used by the GUI to get a single reply for a single message.
+     * Command order below matters: more specific patterns (e.g. "delete 1") are checked before generic ones (e.g. "delete").
      *
      * @param input The user's input string.
      * @return The response string to display.
      */
     public String getResponse(String input) {
+        // --- bye: exit greeting (GUI uses this; CLI exits in run() loop) ---
         if (input.trim().equalsIgnoreCase("bye")) {
             return ui.getGoodbyeMessage();
         }
 
+        // --- list: show all tasks ---
         if (input.equals("list")) {
             return ui.getTaskListMessage(tasks);
         }
 
+        // --- sort: sort tasks by deadline, then save and show updated list ---
         if (input.trim().equalsIgnoreCase("sort")) {
             tasks.sortByDeadline();
             storage.saveTasks(tasks);
             return ui.getSortSuccessMessage() + ui.getTaskListMessage(tasks);
         }
 
+        // --- cheer: show a random motivational quote from storage ---
         if (input.trim().equals("cheer")) {
             return ui.getCheerMessage(storage.getRandomCheerQuote());
         }
 
+        // --- delete: require "delete <number>"; bare "delete" is an error ---
         if (input.trim().equals("delete")) {
             return ui.getErrorMessage("OOPS!!! Please provide a task number to delete.");
         }
@@ -70,6 +76,7 @@ public class Xmoke {
             }
         }
 
+        // --- find: search tasks by keyword; "find <keyword>" ---
         if (input.trim().equals("find")) {
             return ui.getErrorMessage("OOPS!!! Please provide a keyword to find.");
         }
@@ -82,6 +89,7 @@ public class Xmoke {
             return ui.getFoundTasksMessage(tasks.findTasks(keyword));
         }
 
+        // --- mark: mark task as done; "mark <number>" ---
         if (input.trim().equals("mark")) {
             return ui.getErrorMessage("OOPS!!! Please provide a task number to mark.");
         }
@@ -100,6 +108,7 @@ public class Xmoke {
             }
         }
 
+        // --- unmark: mark task as not done; "unmark <number>" ---
         if (input.trim().equals("unmark")) {
             return ui.getErrorMessage("OOPS!!! Please provide a task number to unmark.");
         }
@@ -118,10 +127,12 @@ public class Xmoke {
             }
         }
 
+        // --- capacity check: no new tasks if list is full ---
         if (tasks.isFull()) {
             return ui.getErrorMessage("I can't take it anymore!");
         }
 
+        // --- todo: add a todo task; "todo <description>" ---
         if (input.trim().equals("todo")) {
             return ui.getErrorMessage("OOPS!!! The description of a todo cannot be empty.");
         }
@@ -137,6 +148,7 @@ public class Xmoke {
             return ui.getTaskAddedMessage(task, tasks.size());
         }
 
+        // --- deadline: add a deadline task; "deadline <description> /by <date time>" ---
         if (input.trim().startsWith("deadline ")) {
             String remainder = input.trim().substring("deadline ".length()).trim();
             String[] parts = remainder.split(" /by ", 2);
@@ -158,6 +170,7 @@ public class Xmoke {
             }
         }
 
+        // --- event: add an event with start/end; "event <description> /from <date time> /to <date time>" ---
         if (input.trim().startsWith("event ")) {
             String remainder = input.trim().substring("event ".length()).trim();
             String[] firstSplit = remainder.split(" /from ", 2);
@@ -194,10 +207,14 @@ public class Xmoke {
             }
         }
 
+        // --- unknown command ---
         return ui.getErrorMessage("OOPS!!! I'm sorry, but I don't know what that means :-(");
     }
 
-    /** Runs the text-based UI loop (read command, process, repeat until bye). */
+    /**
+     * Runs the text-based UI loop: show logo and welcome, then read commands from stdin,
+     * process each (same commands as getResponse), and exit on "bye".
+     */
     public void run() {
         ui.showLogo();
         ui.showWelcome();
