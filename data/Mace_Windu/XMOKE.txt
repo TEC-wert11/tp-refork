@@ -1,0 +1,3 @@
+T|0|meditation
+T|0|battle training
+D|0|training|2026-03-05T23:59

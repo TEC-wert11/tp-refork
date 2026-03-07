@@ -17,9 +17,8 @@ import javafx.stage.Stage;
 public class MainApp extends Application {
     private Stage primaryStage;
 
-    /** Entry point when run as main class (e.g. from IDE or gradlew run). */
     public static void main(String[] args) {
-        Application.launch(MainApp.class, args);
+        launch(args);
     }
 
     @Override

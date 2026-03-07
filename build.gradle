@@ -12,7 +12,7 @@ javafx {
 }
 
 application {
-    mainClass.set("MainApp")
+    mainClass.set("Launcher")
 }
 
 repositories {
@@ -46,6 +46,9 @@ test {
 shadowJar {
     archiveBaseName = "javafx-tutorial-duke"
     archiveClassifier = null
+    manifest {
+        attributes 'Main-Class': 'Launcher'
+    }
 }
 
 java {
