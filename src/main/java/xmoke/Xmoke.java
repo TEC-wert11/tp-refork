@@ -29,7 +29,8 @@ public class Xmoke {
     /**
      * Generates a response for the given user input.
      * Used by the GUI to get a single reply for a single message.
-     * Command order below matters: more specific patterns (e.g. "delete 1") are checked before generic ones (e.g. "delete").
+     * Command order below matters: more specific patterns (e.g. "delete 1") are checked
+     * before generic ones (e.g. "delete").
      *
      * @param input The user's input string.
      * @return The response string to display.
