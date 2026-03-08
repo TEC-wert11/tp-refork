@@ -32,6 +32,14 @@ When you open the app, you choose which Master you are. You then enter the train
 
 ---
 
+## How it looks
+
+The screenshot below shows how the app works: the chat window where you talk to Master Yoda, send commands, and see his replies.
+
+![XMOKE chat UI — user and Yoda conversation with tasks and commands](Ui.png)
+
+---
+
 ## What You Can Send to Master Yoda
 
 These are the **commands** (messages) the app understands. You type them in the chat and press Enter (or click Send).
