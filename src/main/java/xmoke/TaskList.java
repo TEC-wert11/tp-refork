@@ -1,83 +1,68 @@
 package xmoke;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.stream.Collectors;
+import java.util.List;
 
 /**
- * Stores and manages a collection of tasks.
- * Provides operations such as add, delete, list, and find.
+ * Represents a list of tasks and provides basic operations on them.
  */
-
 public class TaskList {
-    private static final int MAX_TASKS = 100;
-    private ArrayList<Task> tasks;
+    private final ArrayList<Task> tasks = new ArrayList<>();
 
-    /** Creates an empty task list. */
-    public TaskList() {
-        this.tasks = new ArrayList<>();
-    }
-
-    /** Adds a task; throws if list is full. */
+    /**
+     * Adds a task to the list.
+     *
+     * @param task Task to add.
+     */
     public void addTask(Task task) {
-        if (tasks.size() >= MAX_TASKS) {
-            throw new IllegalStateException("Task list is full!");
-        }
-        assert tasks.size() < MAX_TASKS : "list must not be full when adding";
-        assert task != null : "task to add must not be null";
         tasks.add(task);
     }
 
-    public Task deleteTask(int index) {
-        return tasks.remove(index);
+    /**
+     * Removes a task at the specified index.
+     *
+     * @param index Index of the task to remove.
+     */
+    public void removeTask(int index) {
+        tasks.remove(index);
     }
 
+    /**
+     * Returns the task at the specified index.
+     *
+     * @param index Index of the task.
+     * @return Task at the index.
+     */
     public Task getTask(int index) {
         return tasks.get(index);
     }
 
-    public void markTask(int index) {
-        tasks.get(index).markAsDone();
-    }
-
-    public void unmarkTask(int index) {
-        tasks.get(index).markAsNotDone();
-    }
-
+    /**
+     * Returns the number of tasks in the list.
+     *
+     * @return Number of tasks.
+     */
     public int size() {
         return tasks.size();
     }
 
-    public boolean isFull() {
-        return tasks.size() >= MAX_TASKS;
-    }
-
-    public ArrayList<Task> getAllTasks() {
+    /**
+     * Returns all tasks in the list.
+     *
+     * @return List of tasks.
+     */
+    public List<Task> getAllTasks() {
         return tasks;
     }
 
     /**
-     * Find tasks occurring on a specific date
+     * Checks whether a task with the given description exists.
+     *
+     * @param description Task description to check.
+     * @return True if exists, otherwise false.
      */
-    public ArrayList<Task> getTasksOnDate(LocalDate date) {
+    public boolean containsDescription(String description) {
         return tasks.stream()
-                .filter(task -> task.getDateTime() != null && task.getDateTime().toLocalDate().equals(date))
-                .collect(Collectors.toCollection(ArrayList::new));
-    }
-
-    /** Returns tasks whose description contains the keyword (case-insensitive). */
-    public ArrayList<Task> findTasks(String keyword) {
-        String needle = keyword.trim().toLowerCase();
-        return tasks.stream()
-                .filter(task -> task.getDescription().toLowerCase().contains(needle))
-                .collect(Collectors.toCollection(ArrayList::new));
-    }
-
-    /**
-     * Sorts tasks by deadline chronologically. Tasks with no deadline are placed at the end.
-     */
-    public void sortByDeadline() {
-        tasks.sort(Comparator.comparing(Task::getDateTime, Comparator.nullsLast(Comparator.naturalOrder())));
+                .anyMatch(t -> t.getDescription().equals(description));
     }
 }
