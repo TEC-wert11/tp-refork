@@ -6,7 +6,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
 /**
- * Controller for the caregiver user selection view.
+ * Controller for choosing which senior's routines to edit (caregiver flow).
  */
 public class CaregiverSelectUserController {
     @FXML
@@ -16,29 +16,15 @@ public class CaregiverSelectUserController {
     private VBox userContainer;
 
     private MainApp mainApp;
-    private String mode;
 
     /**
-     * Sets the main application reference for scene switching and storage access.
+     * Sets the main application reference and loads users.
      *
      * @param mainApp Main application instance.
      */
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
-    }
-
-    /**
-     * Sets the mode of the controller and updates the UI accordingly.
-     *
-     * @param mode Mode of operation (e.g. "edit").
-     */
-    public void setMode(String mode) {
-        this.mode = mode;
-        if ("edit".equals(mode)) {
-            titleLabel.setText("Whose tasks are we modifying?");
-        } else {
-            titleLabel.setText("Please choose the user to check");
-        }
+        titleLabel.setText("Whose tasks are we modifying?");
         loadUsers();
     }
 
@@ -53,11 +39,7 @@ public class CaregiverSelectUserController {
             Button button = new Button(user);
             button.setPrefWidth(260);
             button.getStyleClass().add("choice");
-            button.setOnAction(e -> {
-                if ("edit".equals(mode)) {
-                    mainApp.showEditRoutineScene(user);
-                }
-            });
+            button.setOnAction(e -> mainApp.showEditRoutineScene(user));
             userContainer.getChildren().add(button);
         }
     }

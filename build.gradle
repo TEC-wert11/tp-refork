@@ -44,7 +44,7 @@ test {
 }
 
 shadowJar {
-    archiveBaseName = "XMOKE"
+    archiveBaseName = "healthcare-everyday"
     archiveClassifier = null
     manifest {
         attributes 'Main-Class': 'Launcher'

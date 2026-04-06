@@ -163,18 +163,15 @@ public class MainApp extends Application {
     }
 
     /**
-     * Loads and shows the caregiver user selection scene.
-     *
-     * @param mode Mode for the selection scene.
+     * Loads and shows the caregiver user selection scene (edit routines).
      */
-    public void showCaregiverSelectUserScene(String mode) {
+    public void showCaregiverSelectUserScene() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/CaregiverSelectUserView.fxml"));
             AnchorPane pane = loader.load();
 
             CaregiverSelectUserController controller = loader.getController();
             controller.setMainApp(this);
-            controller.setMode(mode);
 
             Scene scene = new Scene(pane, 800, 600);
             applyAppStylesheet(scene);

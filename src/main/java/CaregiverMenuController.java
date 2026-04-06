@@ -24,7 +24,7 @@ public class CaregiverMenuController {
      */
     @FXML
     private void handleEditRoutine() {
-        mainApp.showCaregiverSelectUserScene("edit");
+        mainApp.showCaregiverSelectUserScene();
     }
 
     /**
