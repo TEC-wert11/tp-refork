@@ -51,6 +51,14 @@ public class CaregiverMenuController {
     }
 
     /**
+     * Opens the delete user scene.
+     */
+    @FXML
+    private void handleDeleteUser() {
+        mainApp.showDeleteUserScene();
+    }
+
+    /**
      * Handles adding a new user.
      */
     @FXML

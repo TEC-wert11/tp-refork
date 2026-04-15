@@ -62,7 +62,12 @@ public class TaskList {
      * @return True if exists, otherwise false.
      */
     public boolean containsDescription(String description) {
-        return tasks.stream()
-                .anyMatch(t -> t.getDescription().equals(description));
+        for (Task task : tasks) {
+            if (task.getDescription().equalsIgnoreCase(description)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

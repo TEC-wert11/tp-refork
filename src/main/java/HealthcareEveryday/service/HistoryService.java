@@ -2,6 +2,7 @@ package HealthcareEveryday.service;
 
 import HealthcareEveryday.model.Day;
 import HealthcareEveryday.model.Task;
+import HealthcareEveryday.model.TaskList;
 import HealthcareEveryday.model.User;
 import HealthcareEveryday.storage.Storage;
 
@@ -13,6 +14,8 @@ import java.util.List;
  * Handles history-related logic.
  */
 public class HistoryService {
+    private static final int WEEK_LENGTH_DAYS = 7;
+
     private final Storage storage;
 
     /**
@@ -31,32 +34,59 @@ public class HistoryService {
      */
     public List<TodayUserHistory> getTodayHistoryForAllUsers() {
         List<TodayUserHistory> result = new ArrayList<>();
+        List<String> userNames = storage.listSeniorNames();
 
-        for (String userName : storage.listSeniorNames()) {
-            User user = storage.loadUser(userName);
-            Day today = user.getOrCreateDay(LocalDate.now());
-
-            List<TaskStatus> dailyStatuses = new ArrayList<>();
-            for (Task task : user.getDailyRoutines().getAllTasks()) {
-                dailyStatuses.add(new TaskStatus(
-                        task.getDescription(),
-                        today.isDailyCompleted(task.getDescription())
-                ));
-            }
-
-            List<TaskStatus> weeklyStatuses = new ArrayList<>();
-            for (Task task : user.getWeeklyRoutines().getAllTasks()) {
-                weeklyStatuses.add(new TaskStatus(
-                        task.getDescription(),
-                        today.isWeeklyCompleted(task.getDescription())
-                ));
-            }
-
-            result.add(new TodayUserHistory(userName, dailyStatuses, weeklyStatuses));
-            storage.saveUser(user);
+        for (String userName : userNames) {
+            TodayUserHistory userHistory = buildTodayUserHistory(userName);
+            result.add(userHistory);
         }
 
         return result;
+    }
+
+    /**
+     * Builds today's history for one user.
+     *
+     * @param userName Name of the user.
+     * @return Today's history for that user.
+     */
+    private TodayUserHistory buildTodayUserHistory(String userName) {
+        User user = storage.loadUser(userName);
+        Day today = user.getOrCreateDay(LocalDate.now());
+
+        List<TaskStatus> dailyStatuses = buildTodayTaskStatuses(
+                user.getDailyRoutines(),
+                today,
+                true
+        );
+        List<TaskStatus> weeklyStatuses = buildTodayTaskStatuses(
+                user.getWeeklyRoutines(),
+                today,
+                false
+        );
+
+        storage.saveUser(user);
+        return new TodayUserHistory(userName, dailyStatuses, weeklyStatuses);
+    }
+
+    /**
+     * Builds today's task status list for either daily or weekly routines.
+     *
+     * @param tasks Task list to read from.
+     * @param day Day record to check.
+     * @param isDaily True for daily routines, false for weekly routines.
+     * @return List of task statuses.
+     */
+    private List<TaskStatus> buildTodayTaskStatuses(TaskList tasks, Day day, boolean isDaily) {
+        List<TaskStatus> statuses = new ArrayList<>();
+
+        for (Task task : tasks.getAllTasks()) {
+            boolean completed = isTaskCompleted(day, task.getDescription(), isDaily);
+            TaskStatus status = new TaskStatus(task.getDescription(), completed);
+            statuses.add(status);
+        }
+
+        return statuses;
     }
 
     /**
@@ -69,57 +99,150 @@ public class HistoryService {
         User user = storage.loadUser(userName);
 
         LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusDays(6);
+        LocalDate startDate = getWeeklyStartDate(endDate);
 
-        List<DailyTaskWeeklyRecord> dailyRecords = new ArrayList<>();
-        for (Task task : user.getDailyRoutines().getAllTasks()) {
-            int completedCount = 0;
-            List<String> missedDays = new ArrayList<>();
-
-            for (int i = 0; i < 7; i++) {
-                LocalDate date = startDate.plusDays(i);
-                Day day = user.getDay(date);
-
-                boolean done = day != null && day.isDailyCompleted(task.getDescription());
-                if (done) {
-                    completedCount++;
-                } else {
-                    missedDays.add(formatDayName(date));
-                }
-            }
-
-            dailyRecords.add(new DailyTaskWeeklyRecord(
-                    task.getDescription(),
-                    completedCount,
-                    missedDays
-            ));
-        }
-
-        List<WeeklyTaskWeeklyRecord> weeklyRecords = new ArrayList<>();
-        for (Task task : user.getWeeklyRoutines().getAllTasks()) {
-            boolean done = false;
-            List<String> doneDays = new ArrayList<>();
-
-            for (int i = 0; i < 7; i++) {
-                LocalDate date = startDate.plusDays(i);
-                Day day = user.getDay(date);
-
-                boolean marked = day != null && day.isWeeklyCompleted(task.getDescription());
-                if (marked) {
-                    done = true;
-                    doneDays.add(formatDayName(date));
-                }
-            }
-
-            weeklyRecords.add(new WeeklyTaskWeeklyRecord(
-                    task.getDescription(),
-                    done,
-                    doneDays
-            ));
-        }
+        List<DailyTaskWeeklyRecord> dailyRecords = buildDailyWeeklyRecords(user, startDate);
+        List<WeeklyTaskWeeklyRecord> weeklyRecords = buildWeeklyWeeklyRecords(user, startDate);
 
         storage.saveUser(user);
         return new WeeklyUserHistory(userName, startDate, endDate, dailyRecords, weeklyRecords);
+    }
+
+    /**
+     * Returns the start date of the 7-day history window.
+     *
+     * @param endDate End date of the window.
+     * @return Start date of the window.
+     */
+    private LocalDate getWeeklyStartDate(LocalDate endDate) {
+        return endDate.minusDays(WEEK_LENGTH_DAYS - 1);
+    }
+
+    /**
+     * Builds weekly records for all daily routines.
+     *
+     * @param user User to read from.
+     * @param startDate Start date of the weekly range.
+     * @return List of daily task weekly records.
+     */
+    private List<DailyTaskWeeklyRecord> buildDailyWeeklyRecords(User user, LocalDate startDate) {
+        List<DailyTaskWeeklyRecord> records = new ArrayList<>();
+
+        for (Task task : user.getDailyRoutines().getAllTasks()) {
+            DailyTaskWeeklyRecord record = buildDailyTaskWeeklyRecord(
+                    user,
+                    task.getDescription(),
+                    startDate
+            );
+            records.add(record);
+        }
+
+        return records;
+    }
+
+    /**
+     * Builds weekly records for all weekly routines.
+     *
+     * @param user User to read from.
+     * @param startDate Start date of the weekly range.
+     * @return List of weekly task weekly records.
+     */
+    private List<WeeklyTaskWeeklyRecord> buildWeeklyWeeklyRecords(User user, LocalDate startDate) {
+        List<WeeklyTaskWeeklyRecord> records = new ArrayList<>();
+
+        for (Task task : user.getWeeklyRoutines().getAllTasks()) {
+            WeeklyTaskWeeklyRecord record = buildWeeklyTaskWeeklyRecord(
+                    user,
+                    task.getDescription(),
+                    startDate
+            );
+            records.add(record);
+        }
+
+        return records;
+    }
+
+    /**
+     * Builds the weekly record for one daily task.
+     *
+     * @param user User to read from.
+     * @param taskName Name of the task.
+     * @param startDate Start date of the weekly range.
+     * @return Daily task weekly record.
+     */
+    private DailyTaskWeeklyRecord buildDailyTaskWeeklyRecord(
+            User user,
+            String taskName,
+            LocalDate startDate
+    ) {
+        int completedCount = 0;
+        List<String> missedDays = new ArrayList<>();
+
+        for (int i = 0; i < WEEK_LENGTH_DAYS; i++) {
+            LocalDate date = startDate.plusDays(i);
+            Day day = user.getDay(date);
+            boolean done = isTaskCompleted(day, taskName, true);
+
+            if (done) {
+                completedCount++;
+            }
+            else {
+                missedDays.add(formatDayName(date));
+            }
+        }
+
+        return new DailyTaskWeeklyRecord(taskName, completedCount, missedDays);
+    }
+
+    /**
+     * Builds the weekly record for one weekly task.
+     *
+     * @param user User to read from.
+     * @param taskName Name of the task.
+     * @param startDate Start date of the weekly range.
+     * @return Weekly task weekly record.
+     */
+    private WeeklyTaskWeeklyRecord buildWeeklyTaskWeeklyRecord(
+            User user,
+            String taskName,
+            LocalDate startDate
+    ) {
+        boolean done = false;
+        List<String> doneDays = new ArrayList<>();
+
+        for (int i = 0; i < WEEK_LENGTH_DAYS; i++) {
+            LocalDate date = startDate.plusDays(i);
+            Day day = user.getDay(date);
+            boolean marked = isTaskCompleted(day, taskName, false);
+
+            if (marked) {
+                done = true;
+                doneDays.add(formatDayName(date));
+            }
+        }
+
+        return new WeeklyTaskWeeklyRecord(taskName, done, doneDays);
+    }
+
+    /**
+     * Returns whether the given task is completed on the given day.
+     *
+     * @param day Day record to check.
+     * @param taskName Name of the task.
+     * @param isDaily True for daily task, false for weekly task.
+     * @return True if completed, otherwise false.
+     */
+    private boolean isTaskCompleted(Day day, String taskName, boolean isDaily) {
+        if (day == null) {
+            return false;
+        }
+
+        if (isDaily) {
+            return day.isDailyCompleted(taskName);
+        }
+        else {
+            return day.isWeeklyCompleted(taskName);
+        }
     }
 
     /**

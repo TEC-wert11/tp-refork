@@ -14,6 +14,9 @@ import javafx.scene.layout.VBox;
  * Controller for the history user selection view.
  */
 public class HistorySelectUserController {
+    private static final double USER_BUTTON_WIDTH = 260;
+    private static final String WEEK_PERIOD = "week";
+
     @FXML
     private VBox userContainer;
 
@@ -46,26 +49,54 @@ public class HistorySelectUserController {
      */
     private void loadUsers() {
         userContainer.getChildren().clear();
+
         try {
             List<String> users = authService.getSeniorNames();
+
             for (String user : users) {
-                Button button = new Button(user);
-                button.setPrefWidth(260);
-                button.getStyleClass().add("choice");
-                button.setOnAction(e -> {
-                    if ("week".equals(period)) {
-                        mainApp.showWeeklyHistoryScene(user);
-                    }
-                });
+                Button button = createUserButton(user);
                 userContainer.getChildren().add(button);
             }
-        } catch (RuntimeException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Load failed");
-            alert.setHeaderText("Unable to load users");
-            alert.setContentText("Please check your data files and try again.");
-            alert.showAndWait();
         }
+        catch (RuntimeException e) {
+            showLoadFailedAlert();
+        }
+    }
+
+    /**
+     * Creates a button for one senior user.
+     *
+     * @param userName Name of the user.
+     * @return Configured user button.
+     */
+    private Button createUserButton(String userName) {
+        Button button = new Button(userName);
+        button.setPrefWidth(USER_BUTTON_WIDTH);
+        button.getStyleClass().add("choice");
+        button.setOnAction(e -> openSelectedHistory(userName));
+        return button;
+    }
+
+    /**
+     * Opens the selected history view for the given user.
+     *
+     * @param userName Name of the user.
+     */
+    private void openSelectedHistory(String userName) {
+        if (WEEK_PERIOD.equals(period)) {
+            mainApp.showWeeklyHistoryScene(userName);
+        }
+    }
+
+    /**
+     * Shows an alert when user loading fails.
+     */
+    private void showLoadFailedAlert() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Load failed");
+        alert.setHeaderText("Unable to load users");
+        alert.setContentText("Please check your data files and try again.");
+        alert.showAndWait();
     }
 
     /**

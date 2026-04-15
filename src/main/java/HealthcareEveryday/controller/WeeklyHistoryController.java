@@ -13,6 +13,8 @@ import javafx.scene.layout.VBox;
  * Controller for the weekly history view.
  */
 public class WeeklyHistoryController {
+    private static final int BLOCK_SPACING = 3;
+
     @FXML
     private Label titleLabel;
 
@@ -52,42 +54,140 @@ public class WeeklyHistoryController {
     private void loadWeeklyHistory() {
         HistoryService.WeeklyUserHistory weeklyHistory = historyService.getWeeklyHistory(userName);
 
-        titleLabel.setText(weeklyHistory.getUserName());
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        periodLabel.setText(
-                "Time period: "
-                        + weeklyHistory.getStartDate().format(formatter)
-                        + " to "
-                        + weeklyHistory.getEndDate().format(formatter)
-        );
+        showHeader(weeklyHistory);
 
         contentContainer.getChildren().clear();
+        addDailyRecordBlocks(weeklyHistory);
+        addWeeklyRecordBlocks(weeklyHistory);
+    }
 
+    /**
+     * Displays the header information for the current weekly history.
+     *
+     * @param weeklyHistory Weekly history data.
+     */
+    private void showHeader(HistoryService.WeeklyUserHistory weeklyHistory) {
+        titleLabel.setText(weeklyHistory.getUserName());
+        periodLabel.setText(buildPeriodText(weeklyHistory));
+    }
+
+    /**
+     * Builds the period text shown below the title.
+     *
+     * @param weeklyHistory Weekly history data.
+     * @return Formatted period text.
+     */
+    private String buildPeriodText(HistoryService.WeeklyUserHistory weeklyHistory) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        String startDateText = weeklyHistory.getStartDate().format(formatter);
+        String endDateText = weeklyHistory.getEndDate().format(formatter);
+
+        return "Time period: " + startDateText + " to " + endDateText;
+    }
+
+    /**
+     * Adds all daily task weekly record blocks to the content container.
+     *
+     * @param weeklyHistory Weekly history data.
+     */
+    private void addDailyRecordBlocks(HistoryService.WeeklyUserHistory weeklyHistory) {
         for (HistoryService.DailyTaskWeeklyRecord record : weeklyHistory.getDailyRecords()) {
-            VBox block = new VBox(3);
-            block.getStyleClass().add("weekly-block");
-            block.getChildren().add(new Label(record.getTaskName() + ": " + record.getCompletedCount() + "/7"));
-            block.getChildren().add(
-                    new Label("Missed on: "
-                            + (record.getMissedDays().isEmpty() ? "-" : String.join(", ", record.getMissedDays())))
-            );
+            VBox block = createDailyRecordBlock(record);
             contentContainer.getChildren().add(block);
+        }
+    }
+
+    /**
+     * Adds all weekly task weekly record blocks to the content container.
+     *
+     * @param weeklyHistory Weekly history data.
+     */
+    private void addWeeklyRecordBlocks(HistoryService.WeeklyUserHistory weeklyHistory) {
+        for (HistoryService.WeeklyTaskWeeklyRecord record : weeklyHistory.getWeeklyRecords()) {
+            VBox block = createWeeklyRecordBlock(record);
+            contentContainer.getChildren().add(block);
+        }
+    }
+
+    /**
+     * Creates a display block for one daily task weekly record.
+     *
+     * @param record Daily task weekly record.
+     * @return Configured display block.
+     */
+    private VBox createDailyRecordBlock(HistoryService.DailyTaskWeeklyRecord record) {
+        VBox block = new VBox(BLOCK_SPACING);
+        block.getStyleClass().add("weekly-block");
+
+        String completedText = record.getTaskName() + ": " + record.getCompletedCount() + "/7";
+        String missedText = buildMissedDaysText(record);
+
+        block.getChildren().add(new Label(completedText));
+        block.getChildren().add(new Label(missedText));
+
+        return block;
+    }
+
+    /**
+     * Creates a display block for one weekly task weekly record.
+     *
+     * @param record Weekly task weekly record.
+     * @return Configured display block.
+     */
+    private VBox createWeeklyRecordBlock(HistoryService.WeeklyTaskWeeklyRecord record) {
+        VBox block = new VBox(BLOCK_SPACING);
+        block.getStyleClass().add("weekly-block");
+
+        String statusText = buildWeeklyStatusText(record);
+        String markedText = buildMarkedDaysText(record);
+
+        block.getChildren().add(new Label(statusText));
+        block.getChildren().add(new Label(markedText));
+
+        return block;
+    }
+
+    /**
+     * Builds the missed-days text for a daily record.
+     *
+     * @param record Daily task weekly record.
+     * @return Formatted missed-days text.
+     */
+    private String buildMissedDaysText(HistoryService.DailyTaskWeeklyRecord record) {
+        if (record.getMissedDays().isEmpty()) {
+            return "Missed on: -";
         }
 
-        for (HistoryService.WeeklyTaskWeeklyRecord record : weeklyHistory.getWeeklyRecords()) {
-            VBox block = new VBox(3);
-            block.getStyleClass().add("weekly-block");
-            block.getChildren().add(
-                    new Label(record.getTaskName() + ": "
-                            + (record.isDoneThisWeek() ? "Done this week" : "Not done this week"))
-            );
-            block.getChildren().add(
-                    new Label("Marked on: "
-                            + (record.getDoneDays().isEmpty() ? "-" : String.join(", ", record.getDoneDays())))
-            );
-            contentContainer.getChildren().add(block);
+        return "Missed on: " + String.join(", ", record.getMissedDays());
+    }
+
+    /**
+     * Builds the status text for a weekly record.
+     *
+     * @param record Weekly task weekly record.
+     * @return Formatted weekly status text.
+     */
+    private String buildWeeklyStatusText(HistoryService.WeeklyTaskWeeklyRecord record) {
+        if (record.isDoneThisWeek()) {
+            return record.getTaskName() + ": Done this week";
         }
+        else {
+            return record.getTaskName() + ": Not done this week";
+        }
+    }
+
+    /**
+     * Builds the marked-days text for a weekly record.
+     *
+     * @param record Weekly task weekly record.
+     * @return Formatted marked-days text.
+     */
+    private String buildMarkedDaysText(HistoryService.WeeklyTaskWeeklyRecord record) {
+        if (record.getDoneDays().isEmpty()) {
+            return "Marked on: -";
+        }
+
+        return "Marked on: " + String.join(", ", record.getDoneDays());
     }
 
     /**

@@ -36,15 +36,39 @@ public class CaregiverLoginController {
     private void handleLogin() {
         try {
             boolean valid = authService.validateCaregiverPassword(passwordField.getText());
+
             if (valid) {
-                errorLabel.setText("");
-                mainApp.showCaregiverMenuScene();
-            } else {
-                errorLabel.setText("Wrong password, please try again.");
+                handleSuccessfulLogin();
             }
-        } catch (RuntimeException e) {
-            errorLabel.setText("System error. Please try again later.");
+            else {
+                showWrongPassword();
+            }
         }
+        catch (RuntimeException e) {
+            showSystemError();
+        }
+    }
+
+    /**
+     * Handles a successful login.
+     */
+    private void handleSuccessfulLogin() {
+        errorLabel.setText("");
+        mainApp.showCaregiverMenuScene();
+    }
+
+    /**
+     * Shows the wrong-password message.
+     */
+    private void showWrongPassword() {
+        errorLabel.setText("Wrong password, please try again.");
+    }
+
+    /**
+     * Shows a system-error message.
+     */
+    private void showSystemError() {
+        errorLabel.setText("System error. Please try again later.");
     }
 
     /**

@@ -1,6 +1,10 @@
 package HealthcareEveryday.controller;
 
 import HealthcareEveryday.MainApp;
+import HealthcareEveryday.model.RoutineType;
+import HealthcareEveryday.model.Task;
+import HealthcareEveryday.model.TaskList;
+import HealthcareEveryday.service.RoutineService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -8,10 +12,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import HealthcareEveryday.model.RoutineType;
-import HealthcareEveryday.model.Task;
-import HealthcareEveryday.model.TaskList;
-import HealthcareEveryday.service.RoutineService;
+
+import java.util.Optional;
 
 /**
  * Controller for the edit routine view.
@@ -59,29 +61,45 @@ public class EditRoutineController {
         TaskList dailyRoutines = routineService.getRoutines(userName, RoutineType.DAILY);
         TaskList weeklyRoutines = routineService.getRoutines(userName, RoutineType.WEEKLY);
 
-        dailyContainer.getChildren().clear();
-        for (Task task : dailyRoutines.getAllTasks()) {
-            HBox row = new HBox(10);
-            row.getStyleClass().add("edit-row");
-            Label label = new Label(task.getDescription());
-            Button removeButton = new Button("Remove");
-            removeButton.getStyleClass().addAll("danger", "compact");
-            removeButton.setOnAction(e -> removeRoutine(task.getDescription(), RoutineType.DAILY));
-            row.getChildren().addAll(label, removeButton);
-            dailyContainer.getChildren().add(row);
-        }
+        displayRoutines(dailyContainer, dailyRoutines, RoutineType.DAILY);
+        displayRoutines(weeklyContainer, weeklyRoutines, RoutineType.WEEKLY);
+    }
 
-        weeklyContainer.getChildren().clear();
-        for (Task task : weeklyRoutines.getAllTasks()) {
-            HBox row = new HBox(10);
-            row.getStyleClass().add("edit-row");
-            Label label = new Label(task.getDescription());
-            Button removeButton = new Button("Remove");
-            removeButton.getStyleClass().addAll("danger", "compact");
-            removeButton.setOnAction(e -> removeRoutine(task.getDescription(), RoutineType.WEEKLY));
-            row.getChildren().addAll(label, removeButton);
-            weeklyContainer.getChildren().add(row);
+    /**
+     * Displays all routines of one type in the given container.
+     *
+     * @param container Container to update.
+     * @param routines Routine list to display.
+     * @param type Type of routine being displayed.
+     */
+    private void displayRoutines(VBox container, TaskList routines, RoutineType type) {
+        container.getChildren().clear();
+
+        for (Task task : routines.getAllTasks()) {
+            HBox row = createRoutineRow(task.getDescription(), type);
+            container.getChildren().add(row);
         }
+    }
+
+    /**
+     * Creates one routine row with label and remove button.
+     *
+     * @param description Description of the routine.
+     * @param type Type of routine.
+     * @return Routine row.
+     */
+    private HBox createRoutineRow(String description, RoutineType type) {
+        HBox row = new HBox(10);
+        row.getStyleClass().add("edit-row");
+
+        Label label = new Label(description);
+
+        Button removeButton = new Button("Remove");
+        removeButton.getStyleClass().addAll("danger", "compact");
+        removeButton.setOnAction(e -> removeRoutine(description, type));
+
+        row.getChildren().addAll(label, removeButton);
+        return row;
     }
 
     /**
@@ -117,29 +135,58 @@ public class EditRoutineController {
      * @param type Type of routine to add.
      */
     private void addRoutine(RoutineType type) {
+        Optional<String> result = showAddTaskDialog();
+
+        if (result.isEmpty()) {
+            return;
+        }
+
+        String trimmedName = result.get().trim();
+
+        if (trimmedName.isEmpty()) {
+            showInvalidTaskName();
+            return;
+        }
+
+        boolean added = routineService.addRoutine(userName, trimmedName, type);
+
+        if (!added) {
+            showDuplicateTask(type);
+            return;
+        }
+
+        refreshView();
+    }
+
+    /**
+     * Shows the add-task dialog.
+     *
+     * @return Entered task name, if provided.
+     */
+    private Optional<String> showAddTaskDialog() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Add Task");
         dialog.setHeaderText(null);
         dialog.setContentText("Enter task name:");
+        return dialog.showAndWait();
+    }
 
-        dialog.showAndWait().ifPresent(name -> {
-            String trimmed = name.trim();
-            if (trimmed.isEmpty()) {
-                showInfo("Invalid task", "Task name cannot be empty.");
-                return;
-            }
+    /**
+     * Shows an invalid task-name message.
+     */
+    private void showInvalidTaskName() {
+        showInfo("Invalid task", "Task name cannot be empty.");
+    }
 
-            boolean added = routineService.addRoutine(userName, trimmed, type);
-            if (!added) {
-                showInfo(
-                        "Duplicate task",
-                        "This task already exists in the " + type.name().toLowerCase() + " list."
-                );
-                return;
-            }
-
-            refreshView();
-        });
+    /**
+     * Shows a duplicate-task message.
+     *
+     * @param type Routine type where duplication happened.
+     */
+    private void showDuplicateTask(RoutineType type) {
+        String listName = type.name().toLowerCase();
+        String message = "This task already exists in the " + listName + " list.";
+        showInfo("Duplicate task", message);
     }
 
     /**

@@ -39,6 +39,26 @@ public class AuthService {
     }
 
     /**
+     * Returns whether the specified user exists.
+     *
+     * @param name Name of the user.
+     * @return True if the user exists.
+     */
+    public boolean userExists(String name) {
+        return storage.userExists(name);
+    }
+
+    /**
+     * Deletes the specified senior user.
+     *
+     * @param name Name of the user.
+     * @return True if deleted successfully.
+     */
+    public boolean deleteUser(String name) {
+        return storage.deleteUser(name);
+    }
+
+    /**
      * Checks whether the caregiver password is correct.
      *
      * @param password Password to validate.

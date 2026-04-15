@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <AnchorPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="HealthcareEveryday.controller.LoginController">
+            fx:controller="HealthcareEveryday.controller.DeleteUserController">
     <children>
         <VBox alignment="CENTER" spacing="18.0"
               AnchorPane.topAnchor="24.0"
@@ -15,12 +15,7 @@
               AnchorPane.rightAnchor="0.0"
               AnchorPane.bottomAnchor="24.0">
             <children>
-                <Label text="Healthcare Everyday" styleClass="app-title" />
-                <Label text="Who are you?" styleClass="app-subtitle" />
-
-                <Button text="Caregiver"
-                        onAction="#handleCaregiver"
-                        prefWidth="260.0" />
+                <Label fx:id="titleLabel" styleClass="app-title" />
 
                 <ScrollPane fitToWidth="true"
                             prefViewportHeight="320.0"
@@ -30,9 +25,15 @@
                     <content>
                         <VBox fx:id="userContainer"
                               alignment="CENTER"
-                              spacing="12.0"/>
+                              spacing="12.0"
+                              styleClass="panel-inset" />
                     </content>
                 </ScrollPane>
+
+                <Button text="Back"
+                        onAction="#handleBack"
+                        styleClass="ghost"
+                        prefWidth="300.0" />
             </children>
         </VBox>
     </children>
