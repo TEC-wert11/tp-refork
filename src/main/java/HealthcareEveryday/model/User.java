@@ -1,10 +1,8 @@
 package HealthcareEveryday.model;
 
-import HealthcareEveryday.MainApp;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Optional;
 
 /**
  * Represents a user with daily routines, weekly routines, and recorded day data.
@@ -61,10 +59,7 @@ public class User {
      * @return Day record, or null if not found.
      */
     public Day getDay(LocalDate date) {
-        return days.stream()
-                .filter(d -> d.getDate().equals(date))
-                .findFirst()
-                .orElse(null);
+        return findDayByDate(date);
     }
 
     /**
@@ -93,21 +88,46 @@ public class User {
      * @return Existing or newly created day record.
      */
     public Day getOrCreateDay(LocalDate date) {
-        Optional<Day> existing = days.stream()
-                .filter(d -> d.getDate().equals(date))
-                .findFirst();
+        Day existingDay = findDayByDate(date);
 
-        if (existing.isPresent()) {
-            Day day = existing.get();
-            day.syncWithRoutines(dailyRoutines, weeklyRoutines, getPreviousDay(date));
-            return day;
+        if (existingDay != null) {
+            Day previousDay = getPreviousDay(date);
+            existingDay.syncWithRoutines(dailyRoutines, weeklyRoutines, previousDay);
+            return existingDay;
         }
 
+        Day newDay = createDay(date);
+        addDay(newDay);
+        return newDay;
+    }
+
+    /**
+     * Creates and initializes a new day record for the given date.
+     *
+     * @param date Date of the new day record.
+     * @return Newly created and synchronized day record.
+     */
+    private Day createDay(LocalDate date) {
         Day newDay = new Day(date);
         Day previousDay = getPreviousDay(date);
         newDay.syncWithRoutines(dailyRoutines, weeklyRoutines, previousDay);
-        addDay(newDay);
         return newDay;
+    }
+
+    /**
+     * Finds and returns the day record for the given date.
+     *
+     * @param date Date to search for.
+     * @return Matching day record, or null if not found.
+     */
+    private Day findDayByDate(LocalDate date) {
+        for (Day day : days) {
+            if (day.getDate().equals(date)) {
+                return day;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -117,9 +137,19 @@ public class User {
      * @return Previous day record, or null if none exists.
      */
     private Day getPreviousDay(LocalDate date) {
-        return days.stream()
-                .filter(d -> d.getDate().isBefore(date))
-                .max(Comparator.comparing(Day::getDate))
-                .orElse(null);
+        Day previousDay = null;
+
+        for (Day day : days) {
+            if (day.getDate().isBefore(date)) {
+                if (previousDay == null) {
+                    previousDay = day;
+                }
+                else if (day.getDate().isAfter(previousDay.getDate())) {
+                    previousDay = day;
+                }
+            }
+        }
+
+        return previousDay;
     }
 }

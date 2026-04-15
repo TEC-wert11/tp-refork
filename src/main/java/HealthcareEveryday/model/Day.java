@@ -2,6 +2,7 @@ package HealthcareEveryday.model;
 
 import java.time.LocalDate;
 import java.time.temporal.WeekFields;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -43,7 +44,12 @@ public class Day {
      * @return Log text, or an empty string if no log is stored.
      */
     public String getLog() {
-        return log == null ? "" : log;
+        if (log == null) {
+            return "";
+        }
+        else {
+            return log;
+        }
     }
 
     /**
@@ -52,7 +58,12 @@ public class Day {
      * @param log Log text to store.
      */
     public void setLog(String log) {
-        this.log = log == null ? "" : log;
+        if (log == null) {
+            this.log = "";
+        }
+        else {
+            this.log = log;
+        }
     }
 
     /**
@@ -80,7 +91,14 @@ public class Day {
      * @return True if the task is completed, otherwise false.
      */
     public boolean isDailyCompleted(String taskName) {
-        return dailyStatus.getOrDefault(taskName, false);
+        Boolean completed = dailyStatus.get(taskName);
+
+        if (completed == null) {
+            return false;
+        }
+        else {
+            return completed;
+        }
     }
 
     /**
@@ -90,7 +108,14 @@ public class Day {
      * @return True if the task is completed, otherwise false.
      */
     public boolean isWeeklyCompleted(String taskName) {
-        return weeklyStatus.getOrDefault(taskName, false);
+        Boolean completed = weeklyStatus.get(taskName);
+
+        if (completed == null) {
+            return false;
+        }
+        else {
+            return completed;
+        }
     }
 
     /**
@@ -121,26 +146,111 @@ public class Day {
      * @param previousDay Previous day record, if available.
      */
     public void syncWithRoutines(TaskList dailyRoutines, TaskList weeklyRoutines, Day previousDay) {
+        syncDailyRoutines(dailyRoutines);
+        removeDeletedDailyRoutines(dailyRoutines);
+
+        boolean sameWeekAsPrevious = shouldCarryForwardWeeklyStatus(previousDay);
+
+        syncWeeklyRoutines(weeklyRoutines, previousDay, sameWeekAsPrevious);
+        removeDeletedWeeklyRoutines(weeklyRoutines);
+    }
+
+    /**
+     * Adds any missing daily routines to the daily status map.
+     *
+     * @param dailyRoutines Current daily routine list.
+     */
+    private void syncDailyRoutines(TaskList dailyRoutines) {
         for (Task task : dailyRoutines.getAllTasks()) {
-            dailyStatus.putIfAbsent(task.getDescription(), false);
-        }
+            String taskName = task.getDescription();
 
-        dailyStatus.keySet().removeIf(name -> !dailyRoutines.containsDescription(name));
-
-        boolean sameWeekAsPrevious = previousDay != null && isSameWeek(previousDay.getDate(), this.date);
-
-        for (Task task : weeklyRoutines.getAllTasks()) {
-            String name = task.getDescription();
-            if (!weeklyStatus.containsKey(name)) {
-                if (sameWeekAsPrevious) {
-                    weeklyStatus.put(name, previousDay.isWeeklyCompleted(name));
-                } else {
-                    weeklyStatus.put(name, false);
-                }
+            if (!dailyStatus.containsKey(taskName)) {
+                dailyStatus.put(taskName, false);
             }
         }
+    }
 
-        weeklyStatus.keySet().removeIf(name -> !weeklyRoutines.containsDescription(name));
+    /**
+     * Removes daily status entries for tasks that no longer exist.
+     *
+     * @param dailyRoutines Current daily routine list.
+     */
+    private void removeDeletedDailyRoutines(TaskList dailyRoutines) {
+        Iterator<String> iterator = dailyStatus.keySet().iterator();
+
+        while (iterator.hasNext()) {
+            String taskName = iterator.next();
+
+            if (!dailyRoutines.containsDescription(taskName)) {
+                iterator.remove();
+            }
+        }
+    }
+
+    /**
+     * Returns whether weekly task completion should be carried forward
+     * from the previous day.
+     *
+     * @param previousDay Previous day record, if available.
+     * @return True if previous weekly status should be reused.
+     */
+    private boolean shouldCarryForwardWeeklyStatus(Day previousDay) {
+        if (previousDay == null) {
+            return false;
+        }
+
+        return isSameWeek(previousDay.getDate(), this.date);
+    }
+
+    /**
+     * Adds any missing weekly routines to the weekly status map.
+     *
+     * @param weeklyRoutines Current weekly routine list.
+     * @param previousDay Previous day record, if available.
+     * @param sameWeekAsPrevious True if the previous day is in the same week.
+     */
+    private void syncWeeklyRoutines(TaskList weeklyRoutines, Day previousDay, boolean sameWeekAsPrevious) {
+        for (Task task : weeklyRoutines.getAllTasks()) {
+            String taskName = task.getDescription();
+
+            if (!weeklyStatus.containsKey(taskName)) {
+                boolean completed = getInitialWeeklyCompletion(taskName, previousDay, sameWeekAsPrevious);
+                weeklyStatus.put(taskName, completed);
+            }
+        }
+    }
+
+    /**
+     * Returns the initial weekly completion status for a newly added weekly task.
+     *
+     * @param taskName Name of the task.
+     * @param previousDay Previous day record, if available.
+     * @param sameWeekAsPrevious True if the previous day is in the same week.
+     * @return Initial completion status.
+     */
+    private boolean getInitialWeeklyCompletion(String taskName, Day previousDay, boolean sameWeekAsPrevious) {
+        if (!sameWeekAsPrevious) {
+            return false;
+        }
+
+        return previousDay.isWeeklyCompleted(taskName);
+    }
+
+    /**
+     * Removes weekly status entries for tasks that no longer exist.
+     *
+     * @param weeklyRoutines Current weekly routine list.
+     */
+    private void removeDeletedWeeklyRoutines(TaskList weeklyRoutines) {
+        Iterator<String> iterator = weeklyStatus.keySet().iterator();
+
+        while (iterator.hasNext()) {
+            String taskName = iterator.next();
+
+            if (!weeklyRoutines.containsDescription(taskName)) {
+                iterator.remove();
+            }
+        }
     }
 
     /**
@@ -151,8 +261,14 @@ public class Day {
      * @return True if both dates are in the same week, otherwise false.
      */
     private boolean isSameWeek(LocalDate d1, LocalDate d2) {
-        WeekFields wf = WeekFields.of(Locale.getDefault());
-        return d1.getYear() == d2.getYear()
-                && d1.get(wf.weekOfWeekBasedYear()) == d2.get(wf.weekOfWeekBasedYear());
+        WeekFields weekFields = WeekFields.of(Locale.getDefault());
+        int firstWeek = d1.get(weekFields.weekOfWeekBasedYear());
+        int secondWeek = d2.get(weekFields.weekOfWeekBasedYear());
+
+        if (d1.getYear() != d2.getYear()) {
+            return false;
+        }
+
+        return firstWeek == secondWeek;
     }
 }
