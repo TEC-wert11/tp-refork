@@ -51,32 +51,38 @@ public class CaregiverMenuController {
     }
 
     /**
+     * Opens the delete user scene.
+     */
+    @FXML
+    private void handleDeleteUser() {
+        mainApp.showDeleteUserScene();
+    }
+
+    /**
      * Handles adding a new user.
      */
     @FXML
     private void handleAddUser() {
-        Optional<String> result = promptForInput(
-                "Add New User",
-                "Please enter the name of the new user:"
-        );
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Add New User");
+        dialog.setHeaderText(null);
+        dialog.setContentText("Please enter the name of the new user:");
 
+        Optional<String> result = dialog.showAndWait();
         if (result.isEmpty()) {
             return;
         }
 
         String name = result.get().trim();
-
         if (name.isEmpty()) {
             showInfo("Invalid name", "User name cannot be empty.");
             return;
         }
 
         boolean added = authService.addUser(name);
-
         if (added) {
             showInfo("Success", "User \"" + name + "\" has been added.");
-        }
-        else {
+        } else {
             showInfo("Failed", "A user with that name already exists, or the name is invalid.");
         }
     }
@@ -86,20 +92,20 @@ public class CaregiverMenuController {
      */
     @FXML
     private void handleChangePassword() {
-        Optional<String> oldResult = promptForInput(
-                "Change Password",
-                "Enter old password:"
-        );
-
+        TextInputDialog oldDialog = new TextInputDialog();
+        oldDialog.setTitle("Change Password");
+        oldDialog.setHeaderText(null);
+        oldDialog.setContentText("Enter old password:");
+        Optional<String> oldResult = oldDialog.showAndWait();
         if (oldResult.isEmpty()) {
             return;
         }
 
-        Optional<String> newResult = promptForInput(
-                "Change Password",
-                "Enter new password:"
-        );
-
+        TextInputDialog newDialog = new TextInputDialog();
+        newDialog.setTitle("Change Password");
+        newDialog.setHeaderText(null);
+        newDialog.setContentText("Enter new password:");
+        Optional<String> newResult = newDialog.showAndWait();
         if (newResult.isEmpty()) {
             return;
         }
@@ -108,28 +114,11 @@ public class CaregiverMenuController {
         String newPassword = newResult.get();
 
         boolean changed = authService.changeCaregiverPassword(oldPassword, newPassword);
-
         if (changed) {
             showInfo("Success", "Password updated successfully.");
-        }
-        else {
+        } else {
             showInfo("Failed", "Old password is incorrect or new password is empty.");
         }
-    }
-
-    /**
-     * Shows a text-input dialog and returns the entered value.
-     *
-     * @param title Dialog title.
-     * @param contentText Prompt text shown in the dialog.
-     * @return Entered value, if any.
-     */
-    private Optional<String> promptForInput(String title, String contentText) {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle(title);
-        dialog.setHeaderText(null);
-        dialog.setContentText(contentText);
-        return dialog.showAndWait();
     }
 
     /**

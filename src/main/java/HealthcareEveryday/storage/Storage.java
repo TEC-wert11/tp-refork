@@ -137,6 +137,32 @@ public class Storage {
     }
 
     /**
+     * Deletes the specified user and all associated data.
+     *
+     * @param name Name of the user.
+     * @return True if deleted successfully.
+     */
+    public boolean deleteUser(String name) {
+        String trimmed = normalizeName(name);
+
+        if (trimmed.isEmpty()) {
+            return false;
+        }
+
+        if (!userExists(trimmed)) {
+            return false;
+        }
+
+        try {
+            deleteUserFolder(trimmed);
+            return true;
+        }
+        catch (IOException e) {
+            return false;
+        }
+    }
+
+    /**
      * Validates caregiver password.
      *
      * @param password Input password.
@@ -541,6 +567,44 @@ public class Storage {
         }
 
         Files.write(filePath, lines);
+    }
+
+    /**
+     * Deletes the data folder for the specified user.
+     *
+     * @param userName Name of the user.
+     * @throws IOException If deletion fails.
+     */
+    private void deleteUserFolder(String userName) throws IOException {
+        Path userFolder = getUserFolder(userName);
+
+        try (Stream<Path> stream = Files.walk(userFolder)) {
+            deletePathsInReverseOrder(stream);
+        }
+    }
+
+    /**
+     * Deletes all given paths from deepest to shallowest.
+     *
+     * @param stream Stream of paths to delete.
+     */
+    private void deletePathsInReverseOrder(Stream<Path> stream) {
+        stream.sorted(Comparator.reverseOrder())
+                .forEach(this::deletePath);
+    }
+
+    /**
+     * Deletes one path, wrapping checked exceptions.
+     *
+     * @param path Path to delete.
+     */
+    private void deletePath(Path path) {
+        try {
+            Files.deleteIfExists(path);
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

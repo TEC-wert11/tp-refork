@@ -19,6 +19,7 @@ import HealthcareEveryday.controller.SeniorLogController;
 import HealthcareEveryday.controller.SeniorTasksController;
 import HealthcareEveryday.controller.TodayHistoryController;
 import HealthcareEveryday.controller.WeeklyHistoryController;
+import HealthcareEveryday.controller.DeleteUserController;
 import HealthcareEveryday.service.AuthService;
 import HealthcareEveryday.service.HistoryService;
 import HealthcareEveryday.service.LogService;
@@ -344,6 +345,25 @@ public class MainApp extends Application {
             primaryStage.setScene(scene);
         } catch (Exception e) {
             showErrorAlert("Failed to load weekly history page", e.getMessage());
+        }
+    }
+
+    /**
+     * Loads and shows the delete user scene.
+     */
+    public void showDeleteUserScene() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DeleteUserView.fxml"));
+            AnchorPane pane = loader.load();
+
+            DeleteUserController controller = loader.getController();
+            controller.setMainApp(this);
+
+            Scene scene = new Scene(pane, 800, 600);
+            applyAppStylesheet(scene);
+            primaryStage.setScene(scene);
+        } catch (Exception e) {
+            showErrorAlert("Failed to load delete user page", e.getMessage());
         }
     }
 
