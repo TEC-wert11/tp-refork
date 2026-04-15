@@ -229,3 +229,62 @@
 .edit-row .label {
     -fx-font-size: 15px;
 }
+
+/* User list scroll panel */
+.scroll-pane.user-scroll {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-fit-to-width: true;
+}
+
+.scroll-pane.user-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane.user-scroll .content {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane.user-scroll .corner {
+    -fx-background-color: transparent;
+}
+
+/* Nicer vertical scrollbar */
+.scroll-pane.user-scroll .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-padding: 0 0 0 6;
+}
+
+.scroll-pane.user-scroll .scroll-bar:vertical .track {
+    -fx-background-color: rgba(15, 118, 110, 0.10);
+    -fx-background-radius: 999;
+    -fx-pref-width: 8;
+}
+
+.scroll-pane.user-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(15, 118, 110, 0.45);
+    -fx-background-radius: 999;
+}
+
+.scroll-pane.user-scroll .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: rgba(15, 118, 110, 0.65);
+}
+
+.scroll-pane.user-scroll .increment-button,
+.scroll-pane.user-scroll .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-pane.user-scroll .increment-arrow,
+.scroll-pane.user-scroll .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+/* Hide horizontal scrollbar completely */
+.scroll-pane.user-scroll .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+}
