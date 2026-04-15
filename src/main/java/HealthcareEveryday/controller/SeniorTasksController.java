@@ -65,74 +65,184 @@ public class SeniorTasksController {
      * Refreshes the displayed daily and weekly tasks.
      */
     private void refreshView() {
-        pageTitleLabel.setText("Today's Tasks");
-        userLabel.setText(userName);
-        statusLabel.setText("");
+        setPageText();
+        clearStatus();
+
         try {
             Day today = routineService.getToday(userName);
             TaskList dailyRoutines = routineService.getRoutines(userName, RoutineType.DAILY);
             TaskList weeklyRoutines = routineService.getRoutines(userName, RoutineType.WEEKLY);
 
-            dailyContainer.getChildren().clear();
-            if (dailyRoutines.getAllTasks().isEmpty()) {
-                dailyEmptyLabel.setVisible(true);
-                dailyEmptyLabel.setManaged(true);
-            } else {
-                dailyEmptyLabel.setVisible(false);
-                dailyEmptyLabel.setManaged(false);
-
-                for (Task task : dailyRoutines.getAllTasks()) {
-                    CheckBox box = new CheckBox(task.getDescription());
-                    box.setSelected(today.isDailyCompleted(task.getDescription()));
-                    box.setWrapText(true);
-                    box.setOnAction(e -> {
-                        boolean previous = !box.isSelected();
-                        try {
-                            routineService.setDailyCompleted(userName, task.getDescription(), box.isSelected());
-                            statusLabel.setText("Saved.");
-                        } catch (RuntimeException ex) {
-                            box.setSelected(previous);
-                            statusLabel.setText("Save failed. Please try again.");
-                        }
-                    });
-                    dailyContainer.getChildren().add(box);
-                }
-            }
-
-            weeklyContainer.getChildren().clear();
-            if (weeklyRoutines.getAllTasks().isEmpty()) {
-                weeklyEmptyLabel.setVisible(true);
-                weeklyEmptyLabel.setManaged(true);
-            } else {
-                weeklyEmptyLabel.setVisible(false);
-                weeklyEmptyLabel.setManaged(false);
-
-                for (Task task : weeklyRoutines.getAllTasks()) {
-                    CheckBox box = new CheckBox(task.getDescription());
-                    box.setSelected(today.isWeeklyCompleted(task.getDescription()));
-                    box.setWrapText(true);
-                    box.setOnAction(e -> {
-                        boolean previous = !box.isSelected();
-                        try {
-                            routineService.setWeeklyCompleted(userName, task.getDescription(), box.isSelected());
-                            statusLabel.setText("Saved.");
-                        } catch (RuntimeException ex) {
-                            box.setSelected(previous);
-                            statusLabel.setText("Save failed. Please try again.");
-                        }
-                    });
-                    weeklyContainer.getChildren().add(box);
-                }
-            }
-        } catch (RuntimeException e) {
-            dailyContainer.getChildren().clear();
-            weeklyContainer.getChildren().clear();
-            dailyEmptyLabel.setVisible(true);
-            dailyEmptyLabel.setManaged(true);
-            weeklyEmptyLabel.setVisible(true);
-            weeklyEmptyLabel.setManaged(true);
-            statusLabel.setText("Unable to load tasks. Please try again.");
+            loadDailyTasks(today, dailyRoutines);
+            loadWeeklyTasks(today, weeklyRoutines);
         }
+        catch (RuntimeException e) {
+            handleLoadFailure();
+        }
+    }
+
+    /**
+     * Sets the page title and user label.
+     */
+    private void setPageText() {
+        pageTitleLabel.setText("Today's Tasks");
+        userLabel.setText(userName);
+    }
+
+    /**
+     * Clears the current status message.
+     */
+    private void clearStatus() {
+        statusLabel.setText("");
+    }
+
+    /**
+     * Loads and displays daily tasks.
+     *
+     * @param today Today's day record.
+     * @param dailyRoutines Daily routine list.
+     */
+    private void loadDailyTasks(Day today, TaskList dailyRoutines) {
+        dailyContainer.getChildren().clear();
+
+        if (dailyRoutines.getAllTasks().isEmpty()) {
+            showEmptyLabel(dailyEmptyLabel);
+            return;
+        }
+
+        hideEmptyLabel(dailyEmptyLabel);
+
+        for (Task task : dailyRoutines.getAllTasks()) {
+            CheckBox box = createDailyTaskCheckBox(today, task);
+            dailyContainer.getChildren().add(box);
+        }
+    }
+
+    /**
+     * Loads and displays weekly tasks.
+     *
+     * @param today Today's day record.
+     * @param weeklyRoutines Weekly routine list.
+     */
+    private void loadWeeklyTasks(Day today, TaskList weeklyRoutines) {
+        weeklyContainer.getChildren().clear();
+
+        if (weeklyRoutines.getAllTasks().isEmpty()) {
+            showEmptyLabel(weeklyEmptyLabel);
+            return;
+        }
+
+        hideEmptyLabel(weeklyEmptyLabel);
+
+        for (Task task : weeklyRoutines.getAllTasks()) {
+            CheckBox box = createWeeklyTaskCheckBox(today, task);
+            weeklyContainer.getChildren().add(box);
+        }
+    }
+
+    /**
+     * Creates a check box for a daily task.
+     *
+     * @param today Today's day record.
+     * @param task Task to display.
+     * @return Configured check box.
+     */
+    private CheckBox createDailyTaskCheckBox(Day today, Task task) {
+        CheckBox box = new CheckBox(task.getDescription());
+        box.setSelected(today.isDailyCompleted(task.getDescription()));
+        box.setWrapText(true);
+
+        box.setOnAction(e -> handleDailyTaskToggle(box, task));
+
+        return box;
+    }
+
+    /**
+     * Creates a check box for a weekly task.
+     *
+     * @param today Today's day record.
+     * @param task Task to display.
+     * @return Configured check box.
+     */
+    private CheckBox createWeeklyTaskCheckBox(Day today, Task task) {
+        CheckBox box = new CheckBox(task.getDescription());
+        box.setSelected(today.isWeeklyCompleted(task.getDescription()));
+        box.setWrapText(true);
+
+        box.setOnAction(e -> handleWeeklyTaskToggle(box, task));
+
+        return box;
+    }
+
+    /**
+     * Handles toggling of a daily task.
+     *
+     * @param box Check box that was toggled.
+     * @param task Task linked to the check box.
+     */
+    private void handleDailyTaskToggle(CheckBox box, Task task) {
+        boolean previous = !box.isSelected();
+
+        try {
+            routineService.setDailyCompleted(userName, task.getDescription(), box.isSelected());
+            statusLabel.setText("Saved.");
+        }
+        catch (RuntimeException ex) {
+            box.setSelected(previous);
+            statusLabel.setText("Save failed. Please try again.");
+        }
+    }
+
+    /**
+     * Handles toggling of a weekly task.
+     *
+     * @param box Check box that was toggled.
+     * @param task Task linked to the check box.
+     */
+    private void handleWeeklyTaskToggle(CheckBox box, Task task) {
+        boolean previous = !box.isSelected();
+
+        try {
+            routineService.setWeeklyCompleted(userName, task.getDescription(), box.isSelected());
+            statusLabel.setText("Saved.");
+        }
+        catch (RuntimeException ex) {
+            box.setSelected(previous);
+            statusLabel.setText("Save failed. Please try again.");
+        }
+    }
+
+    /**
+     * Shows an empty-state label.
+     *
+     * @param label Label to show.
+     */
+    private void showEmptyLabel(Label label) {
+        label.setVisible(true);
+        label.setManaged(true);
+    }
+
+    /**
+     * Hides an empty-state label.
+     *
+     * @param label Label to hide.
+     */
+    private void hideEmptyLabel(Label label) {
+        label.setVisible(false);
+        label.setManaged(false);
+    }
+
+    /**
+     * Handles failure to load task data.
+     */
+    private void handleLoadFailure() {
+        dailyContainer.getChildren().clear();
+        weeklyContainer.getChildren().clear();
+
+        showEmptyLabel(dailyEmptyLabel);
+        showEmptyLabel(weeklyEmptyLabel);
+
+        statusLabel.setText("Unable to load tasks. Please try again.");
     }
 
     /**

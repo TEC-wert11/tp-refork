@@ -44,15 +44,47 @@ public class SeniorLogController {
      */
     public void setUserName(String userName) {
         this.userName = userName;
+        setPageText();
+        loadTodayLog();
+    }
+
+    /**
+     * Sets the page title and user label.
+     */
+    private void setPageText() {
         pageTitleLabel.setText("Daily Log");
         userLabel.setText(userName);
+    }
+
+    /**
+     * Loads today's log data into the text area.
+     */
+    private void loadTodayLog() {
         try {
-            logArea.setText(logService.getTodayLog(userName));
-            statusLabel.setText("");
-        } catch (RuntimeException e) {
-            logArea.setText("");
-            statusLabel.setText("Unable to load today's log. Please try again.");
+            String todayLog = logService.getTodayLog(userName);
+            showLoadedLog(todayLog);
         }
+        catch (RuntimeException e) {
+            showLoadFailure();
+        }
+    }
+
+    /**
+     * Displays a successfully loaded log.
+     *
+     * @param logText Log text to display.
+     */
+    private void showLoadedLog(String logText) {
+        logArea.setText(logText);
+        statusLabel.setText("");
+    }
+
+    /**
+     * Displays a load-failure message.
+     */
+    private void showLoadFailure() {
+        logArea.setText("");
+        statusLabel.setText("Unable to load today's log. Please try again.");
     }
 
     /**
@@ -62,11 +94,26 @@ public class SeniorLogController {
     private void handleSubmit() {
         try {
             logService.saveTodayLog(userName, logArea.getText());
-            statusLabel.setText("Today's record saved.");
+            showSaveSuccess();
             mainApp.showLoginScene();
-        } catch (RuntimeException e) {
-            statusLabel.setText("Save failed. Please try again.");
         }
+        catch (RuntimeException e) {
+            showSaveFailure();
+        }
+    }
+
+    /**
+     * Displays a successful save message.
+     */
+    private void showSaveSuccess() {
+        statusLabel.setText("Today's record saved.");
+    }
+
+    /**
+     * Displays a save-failure message.
+     */
+    private void showSaveFailure() {
+        statusLabel.setText("Save failed. Please try again.");
     }
 
     /**
