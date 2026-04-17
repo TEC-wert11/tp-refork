@@ -79,3 +79,7 @@ On Windows, use `gradlew.bat shadowJar` if you use the batch wrapper.
 - Java 21, JavaFX 21, Gradle
 - FXML views in `src/main/resources/view/`
 - Local persistence under `data/`
+
+---
+
+**AI assistance:** Some work on this project used AI-assisted tooling, including IDE autocomplete, debugging help, and other AI-supported debugging during development.

@@ -3,8 +3,6 @@
 This project is a **desktop JavaFX app** with local file storage.  
 There is **no public HTTP/REST API** in the codebase.
 
-The "API" of this project is the internal service layer used by controllers.
-
 ## Application Entry
 
 - Main class: `HealthcareEveryday.MainApp`
