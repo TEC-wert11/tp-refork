@@ -82,4 +82,4 @@ On Windows, use `gradlew.bat shadowJar` if you use the batch wrapper.
 
 ---
 
-**AI assistance:** Some work on this project used AI-assisted tooling, including IDE autocomplete, debugging help, and other AI-supported debugging during development.
+**AI assistance:** Some work on this project used AI-assisted tooling, including IDE autocomplete, debugging help, and UI design tips.
