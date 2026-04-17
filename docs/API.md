@@ -1,90 +1,35 @@
-# API Notes — Healthcare Everyday
+# Implementation notes — Healthcare Everyday
 
-This project is a **desktop JavaFX app** with local file storage.  
-There is **no public HTTP/REST API** in the codebase.
+Scope: **desktop JavaFX app**, local file storage, no public HTTP API.
 
-## Application Entry
+## Stack
 
-- Main class: `HealthcareEveryday.MainApp`
-- Starts JavaFX and wires service instances:
-  - `AuthService`
-  - `RoutineService`
-  - `LogService`
-  - `HistoryService`
-  - `SummaryService`
+- Java 21, JavaFX 21, Gradle  
+- GUI: FXML under `src/main/resources/view/`, controllers in `src/main/java/`  
+- Model and persistence: `HealthcareEveryday` package (`User`, `Day`, `Task`, `Storage`, etc.)
 
-## Internal Service API
+## Storage (`HealthcareEveryday.storage.Storage`)
 
-### `AuthService`
+- `data/users/` — one folder per senior; `profile.txt`, routine files, `days/*.txt`  
+- `data/app/caregiver.txt` — single shared caregiver password  
+- Key methods: `listSeniorNames()`, `addUser`, `loadUser`, `saveUser`, caregiver password helpers  
 
-- `getSeniorNames() -> List<String>`
-- `addUser(String name) -> boolean`
-- `userExists(String name) -> boolean`
-- `deleteUser(String name) -> boolean`
-- `validateCaregiverPassword(String password) -> boolean`
-- `changeCaregiverPassword(String oldPassword, String newPassword) -> boolean`
+## Main navigation (`HealthcareEveryday.MainApp`)
 
-### `RoutineService`
+Scenes: login (senior picker + caregiver), senior tasks, senior log, caregiver login/menu, user pick for editing routines, history flows, summary generation.
 
-- `getUser(String userName) -> User`
-- `getRoutines(String userName, RoutineType routineType) -> TaskList`
-- `getToday(String userName) -> Day`
-- `addRoutine(String userName, String description, RoutineType routineType) -> boolean`
-- `removeRoutine(String userName, String description, RoutineType routineType) -> boolean`
-- `setDailyCompleted(String userName, String taskName, boolean completed) -> void`
-- `setWeeklyCompleted(String userName, String taskName, boolean completed) -> void`
-- `saveTodayLog(String userName, String log) -> void`
+Global stylesheet: `/css/app.css` applied to every `Scene`.
 
-### `LogService`
+## Controllers (summary)
 
-- `getTodayLog(String userName) -> String`
-- `saveTodayLog(String userName, String log) -> void`
+| Controller | Role |
+|------------|------|
+| `HealthcareEveryday.controller.LoginController` | Senior buttons; caregiver entry |
+| `HealthcareEveryday.controller.SeniorTasksController` | Daily/weekly checkboxes for today |
+| `HealthcareEveryday.controller.SeniorLogController` | Free-text daily log |
+| `HealthcareEveryday.controller.CaregiverLoginController` / `HealthcareEveryday.controller.CaregiverMenuController` | Caregiver auth and menu |
+| `HealthcareEveryday.controller.CaregiverSelectUserController` | Pick senior to edit routines |
+| `HealthcareEveryday.controller.EditRoutineController` | Add/remove routine tasks |
+| History / summary controllers | Read-only views and CSV report |
 
-### `HistoryService`
-
-- `getTodayHistoryForAllUsers() -> List<TodayUserHistory>`
-- `getWeeklyHistory(String userName) -> WeeklyUserHistory`
-- Returned DTOs include:
-  - `TaskStatus`
-  - `TodayUserHistory`
-  - `DailyTaskWeeklyRecord`
-  - `WeeklyTaskWeeklyRecord`
-  - `WeeklyUserHistory`
-
-### `SummaryService`
-
-- `generateMonthlySummary(String userName) -> Path`
-- Delegates CSV creation to `SummaryGenerator`
-
-## Persistence Contract (`Storage`)
-
-Data root: `data/`
-
-- `data/users/<senior>/profile.txt`
-- `data/users/<senior>/dailyRoutines.txt`
-- `data/users/<senior>/weeklyRoutines.txt`
-- `data/users/<senior>/days/<yyyy-mm-dd>.txt`
-- `data/app/caregiver.txt`
-
-Day file format:
-
-- `log=<text>`
-- `[daily]` section with `<task>=true|false`
-- `[weekly]` section with `<task>=true|false`
-
-## Report Output
-
-- Monthly summary CSV is generated under `report/`
-- File naming: `<UserName>_summary_<yyyy-mm-dd>.csv` (spaces in user name become `_`)
-
-## UI Flow Coverage
-
-Main scenes include:
-
-- Login (senior picker + caregiver entry)
-- Senior tasks and daily log
-- Caregiver login/menu
-- Caregiver routine editing
-- Today/weekly history views
-- Summary generation user selection
-- Delete user view
+No text-command chatbot or `Xmoke` command line class is part of this codebase.
